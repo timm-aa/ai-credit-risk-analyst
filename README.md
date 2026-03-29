@@ -35,3 +35,12 @@
 - Массовая пакетная обработка заявок
 - Сертификация для production в регулируемой среде
 - Интеграция с CRM и учётными системами банка
+
+---
+
+## Документация
+
+- [System design (Milestone 2)](docs/system-design.md) — архитектура PoC, модули, workflow, guardrails
+- [Диаграммы](docs/diagrams/) — C4, workflow, data flow
+- [Спецификации модулей](docs/specs/) — retriever, tools, memory, orchestrator, serving, observability
+- [Product proposal](docs/product-proposal.md) · [Governance](docs/governance.md)
