@@ -40,10 +40,15 @@
 
 ## Документация
 
-- [System design (Milestone 2)](docs/system-design.md) — архитектура PoC, модули, workflow, guardrails
-- [Диаграммы](docs/diagrams/) — C4, workflow, data flow
-- [Спецификации модулей](docs/specs/) — retriever, tools, memory, orchestrator, serving, observability
+- [System design](docs/system-design.md) — архитектура PoC, модули, workflow, guardrails
+- [LLMOps](docs/llmops.md) — модели, промпты, наблюдаемость, eval, безопасность вызовов LLM
+- [Пример промпта](docs/prompts.md) — шаблон system/user и ожидаемый JSON от модели
+- [JSON Schema RiskReport](docs/risk-report-schema.md) — контракт ответа API (дублируется Zod в `lib/types.ts`)
+- [Диаграммы](docs/diagrams/) — C4, workflow, data flow, **sequence happy-path**
+- [Спецификации модулей](docs/specs/) — retriever, tools, memory, orchestrator, serving, observability (со стеком технологий и расширенной eval-стратегией)
 - [Product proposal](docs/product-proposal.md) · [Governance](docs/governance.md)
+
+Сводка по расширению документации: [LLMOps](docs/llmops.md), [пример промпта](docs/prompts.md), [JSON Schema RiskReport](docs/risk-report-schema.md), [sequence happy-path](docs/diagrams/happy-path-sequence.md), уточнение стека в [specs](docs/specs/), golden dataset и пороги метрик в [observability-evals](docs/specs/observability-evals.md).
 
 ---
 

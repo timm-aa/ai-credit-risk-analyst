@@ -46,7 +46,11 @@
 7. **Assembler** собирает **RiskReport** (JSON + текст): decision из правил, flags из edge cases, explanation от LLM.
 8. **Guardrail post-check**: decision не противоречит детерминированным флагам (например, лимит превышен → не «approve»).
 
-Диаграммы: `docs/diagrams/workflow.md`, `docs/diagrams/data-flow.md`.
+Диаграммы: `docs/diagrams/workflow.md`, `docs/diagrams/data-flow.md`, `docs/diagrams/happy-path-sequence.md` (успешный сценарий).
+
+Контракт ответа API: **JSON Schema** для `RiskReport` — `docs/risk-report-schema.md` (в коде — Zod `RiskReportSchema`).
+
+Операционные практики LLM: **LLMOps** — `docs/llmops.md`; пример промпта — `docs/prompts.md`.
 
 ---
 
@@ -147,6 +151,7 @@
 | `docs/diagrams/c4-component.md` | C4 Component (ядро) |
 | `docs/diagrams/workflow.md` | Workflow / graph + ветки ошибок |
 | `docs/diagrams/data-flow.md` | Поток данных, хранение, логирование |
+| `docs/diagrams/happy-path-sequence.md` | Sequence: успешный путь (аналитик → API → tools → RAG → LLM) |
 
 ---
 
@@ -155,3 +160,6 @@
 - Продукт: `docs/product-proposal.md`
 - Governance: `docs/governance.md`
 - Спецификации модулей: `docs/specs/*.md`
+- LLMOps: `docs/llmops.md`
+- Промпты (пример): `docs/prompts.md`
+- JSON Schema отчёта: `docs/risk-report-schema.md`

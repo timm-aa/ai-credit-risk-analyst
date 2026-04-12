@@ -1,20 +1,34 @@
 # Spec: Agent / Orchestrator
 
+## Технологии (реализация PoC)
+
+| Компонент | Технология |
+|-----------|------------|
+| Оркестрация | Последовательный async-пайплайн в `lib/agent/orchestrator.ts` (функция `runAssessment`) |
+| Точка входа | Next.js **Route Handler** `POST` `app/api/assess/route.ts` |
+| Парсинг слотов | `lib/agent/parseSlots.ts` (регулярные выражения + демо-алиасы) |
+| Правила | Чистые функции `lib/rules/engine.ts` |
+| Guardrails | `lib/guardrails/pre.ts`, `lib/guardrails/post.ts` |
+| LLM | `lib/llm/explain.ts` (OpenAI Chat Completions + Zod) |
+| Граф как библиотека | LangGraph **не** используется в PoC; эквивалентность шагам — явный код (проще отладка на Vercel) |
+
 ## Назначение
 
-Управление **графом состояний**: последовательность шагов, условные переходы, вызовы tools и LLM, сборка отчёта. Фокус агентского трека: **качество выводов**, **guardrails**, **fallback и согласованность decision с правилами**.
+Управление **цепочкой шагов**: условные переходы, вызовы tools и LLM, сборка отчёта. Фокус агентского трека: **качество выводов**, **guardrails**, **fallback и согласованность decision с правилами**.
 
 ## Шаги (узлы графа)
 
-1. `parse_intent` — извлечение слотов; при нехватке — ветка уточнения или стоп.
-2. `fetch_credit_history` — вызов tool.
-3. `fetch_pd` — вызов tool с учётом фактов из credit history.
-4. `apply_rules` — детерминированные правила (лимиты, пороги PD, флаги edge cases).
-5. `retrieve_policy` — retriever + fallback BM25.
-6. `guardrail_pre` — домен, длина, запрет опасных паттернов.
-7. `generate_explanation` — LLM с structured + text полями.
-8. `guardrail_post` — согласование `decision` enum с rules engine; запрет запрещённых формулировок.
-9. `assemble_report` — финальный JSON + текст пользователю.
+Порядок в коде `runAssessment`:
+
+1. `guardrail_pre` — домен, длина сообщения, шаблоны injection.
+2. `parse_slots` — извлечение `client_id`, `loan_amount` и демо-алиасов.
+3. `fetch_credit_history` — вызов tool.
+4. `fetch_pd` — вызов tool (или fallback при недоступности кредитной истории).
+5. `apply_rules` — детерминированные правила (лимиты, пороги PD, флаги edge cases).
+6. `retrieve_policy` — retriever + fallback BM25.
+7. `generate_explanation` — LLM (JSON) или шаблон при отсутствии ключа API.
+8. `guardrail_post` + инварианты — текст и финальный `decision`.
+9. Сборка `RiskReport` с массивом `steps` для UI.
 
 ## Правила переходов
 
@@ -29,7 +43,7 @@
 
 ## Stop conditions
 
-- Успех: `assemble_report` выполнен, post-guardrail OK.
+- Успех: отчёт собран, post-guardrail применён.
 - Частичный успех: отчёт с флагами деградации.
 - Жёсткий стоп: критичная ошибка валидации входа (без вызова внешних API).
 
@@ -43,5 +57,5 @@
 
 ## Инварианты
 
-- `decision` в отчёте **не может** противоречить детерминированным флагам (лимит, запрет по policy rules engine).
-- LLM **не** может изменить числовой `pd_score` (только цитировать/объяснять переданные значения).
+- `decision` в отчёте **не может** противоречить детерминированным флагам (лимит, порог PD).
+- LLM **не** может изменить числовой `pd_score` (только цитировать/обяснять переданные значения).
