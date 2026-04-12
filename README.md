@@ -44,3 +44,38 @@
 - [Диаграммы](docs/diagrams/) — C4, workflow, data flow
 - [Спецификации модулей](docs/specs/) — retriever, tools, memory, orchestrator, serving, observability
 - [Product proposal](docs/product-proposal.md) · [Governance](docs/governance.md)
+
+---
+
+## Реализация (прототип)
+
+Стек: **Next.js 14** (App Router) + TypeScript. Оркестратор: `lib/agent/orchestrator.ts` — цепочка pre-guardrail → mock Credit History / PD → **детерминированные правила** → RAG по `data/policy.md` (embeddings + BM25 fallback) → **LLM** только для объяснения (JSON), post-guardrail на текст и инварианты решения.
+
+### Локальный запуск
+
+```bash
+npm install
+cp .env.example .env   # задать OPENAI_API_KEY
+npm run dev
+```
+
+Откройте [http://localhost:3000](http://localhost:3000), введите запрос и нажмите «Оценить риск». API: `POST /api/assess` с телом `{ "message": "..." }`.
+
+### Деплой на Vercel
+
+1. Залейте репозиторий на GitHub и импортируйте проект в [vercel.com](https://vercel.com).
+2. В **Settings → Environment Variables** добавьте `OPENAI_API_KEY` (и при необходимости `OPENAI_LLM_MODEL`).
+3. Деплой: `npm run build` выполняется автоматически; для API-роута задан `maxDuration` 60 с в `vercel.json` (на Hobby лимит может быть 10 с — при таймаутах укоротите промпт или перейдите на Pro).
+
+**Supabase** для PoC не требуется: политика лежит в репозитории, эмбеддинги чанков кэшируются в памяти процесса. При необходимости позже можно вынести чанки и вектора в Supabase pgvector без смены контрактов retriever.
+
+### Демо-сценарии в запросе
+
+| Ввод | Эффект |
+|------|--------|
+| `12345`, сумма ≤ 1M | Типовой клиент (mock) |
+| `no_history` | Thin file → обычно `manual_review` |
+| `conflict` | Конфликт данных → `manual_review` |
+| `timeout` | Симуляция сбоя PD → fallback + флаг `pd_degraded` |
+| `timeout_bki` | Симуляция сбоя БКИ → `credit_history_error` |
+| сумма **> 1 000 000** | Лимит политики → `reject` |
